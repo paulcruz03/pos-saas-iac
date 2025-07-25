@@ -7,8 +7,21 @@ CREATE TYPE restock_type AS ENUM ('initial', 'restock', 'adjustment');
 -- Approval status
 CREATE TYPE approval_status AS ENUM ('pending', 'approved', 'rejected');
 
+CREATE TABLE devices (
+  id          SERIAL PRIMARY KEY,
+  imei        VARCHAR(32) UNIQUE NOT NULL,
+  is_active   BOOLEAN DEFAULT TRUE,
+);
+
+CREATE TABLE roles (
+  id    SERIAL PRIMARY KEY,
+  name  TEXT UNIQUE NOT NULL
+);
+
 CREATE TABLE users (
   id            SERIAL PRIMARY KEY,
+  role_id       INTEGER REFERENCES roles(id),
+  device_id     INTEGER REFERENCES devices(id) NULL,
   name          VARCHAR(100),
   email         VARCHAR(100) UNIQUE,
   password_hash TEXT,
@@ -17,16 +30,28 @@ CREATE TABLE users (
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE product_types (
+  id            SERIAL PRIMARY KEY,
+  name          VARCHAR(100) UNIQUE,
+  description   TEXT,
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE products (
-  id           SERIAL PRIMARY KEY,
-  name         VARCHAR(100),
-  description  TEXT,
-  price        NUMERIC(10,2),
-  cost         NUMERIC(10,2),
-  sku          VARCHAR(50) UNIQUE,
-  stock        INTEGER DEFAULT 0,
-  is_active    BOOLEAN DEFAULT TRUE,
-  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id              SERIAL PRIMARY KEY,
+  product_type_id INTEGER REFERENCES product_types(id),
+  name            VARCHAR(100),
+  description     TEXT,
+  price           NUMERIC(10,2),
+  cost            NUMERIC(10,2),
+  sku             VARCHAR(50) UNIQUE,
+  stock           INTEGER DEFAULT 0,
+  is_active       BOOLEAN DEFAULT TRUE,
+  is_deleted      BOOLEAN DEFAULT FALSE,
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_by      INTEGER REFERENCES users(id),
+  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 );
 
 CREATE TABLE product_stock (
